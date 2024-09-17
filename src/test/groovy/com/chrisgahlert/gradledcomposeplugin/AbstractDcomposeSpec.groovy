@@ -21,7 +21,7 @@ import nebula.test.functional.ExecutionResult
 
 @TypeChecked
 abstract class AbstractDcomposeSpec extends IntegrationSpec {
-    protected static final String DEFAULT_IMAGE = 'busybox:default'
+    protected static final String DEFAULT_IMAGE = 'busybox:stable'
     protected static final String ALTERNATE_IMAGE = 'busybox:alt'
     protected static final String DEFAULT_BUILD_FILE = """
         dcompose {
@@ -34,7 +34,7 @@ abstract class AbstractDcomposeSpec extends IntegrationSpec {
 
     """.stripIndent()
 
-    protected static final String DEFAULT_PLUGIN_INIT = 'apply plugin: "com.chrisgahlert.gradle-dcompose-plugin"'
+    protected static final String DEFAULT_PLUGIN_INIT = 'apply plugin: "com.vantiq.gradle-dcompose-plugin"'
 
     protected static final String DEFAULT_REPOSITORY_INIT = '''
         buildscript {
@@ -91,7 +91,7 @@ abstract class AbstractDcomposeSpec extends IntegrationSpec {
     }
 
     @Override
-    protected File addSubproject(String subprojectName, String subBuildGradleText) {
+    File addSubproject(String subprojectName, String subBuildGradleText) {
         return super.addSubproject(subprojectName, """
             $DEFAULT_PLUGIN_INIT
             $subBuildGradleText
@@ -99,7 +99,7 @@ abstract class AbstractDcomposeSpec extends IntegrationSpec {
     }
 
     @Override
-    protected ExecutionResult runTasks(String... tasks) {
+    ExecutionResult runTasks(String... tasks) {
         def result = super.runTasks(tasks)
 
         file("build-${logCounter++}.log").text = """\
@@ -121,7 +121,7 @@ $result.standardError
     def cleanup() {
         buildFile << """
             allprojects {
-                plugins.withType(${DcomposePlugin.class.canonicalName}) {
+                plugins.withType(${com.vantiq.gradledcomposeplugin.DcomposePlugin.class.canonicalName}) {
                     dcompose.services.all {
                         stopTimeout = 0
                     }

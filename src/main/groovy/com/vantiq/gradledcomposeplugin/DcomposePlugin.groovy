@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.chrisgahlert.gradledcomposeplugin
+package com.vantiq.gradledcomposeplugin
 
 import com.chrisgahlert.gradledcomposeplugin.extension.DcomposeExtension
 import com.chrisgahlert.gradledcomposeplugin.extension.Network
 import com.chrisgahlert.gradledcomposeplugin.extension.Service
 import com.chrisgahlert.gradledcomposeplugin.extension.Volume
-import com.chrisgahlert.gradledcomposeplugin.tasks.*
+import com.chrisgahlert.gradledcomposeplugin.tasks.AbstractDcomposeNetworkTask
+import com.chrisgahlert.gradledcomposeplugin.tasks.AbstractDcomposeServiceTask
+import com.chrisgahlert.gradledcomposeplugin.tasks.AbstractDcomposeTask
+import com.chrisgahlert.gradledcomposeplugin.tasks.AbstractDcomposeVolumeTask
+import com.chrisgahlert.gradledcomposeplugin.tasks.DcomposeComposeFileTask
+import com.chrisgahlert.gradledcomposeplugin.tasks.DcomposeCopyFileFromContainerTask
 import com.chrisgahlert.gradledcomposeplugin.tasks.container.DcomposeContainerCreateTask
 import com.chrisgahlert.gradledcomposeplugin.tasks.container.DcomposeContainerRemoveTask
 import com.chrisgahlert.gradledcomposeplugin.tasks.container.DcomposeContainerStartTask

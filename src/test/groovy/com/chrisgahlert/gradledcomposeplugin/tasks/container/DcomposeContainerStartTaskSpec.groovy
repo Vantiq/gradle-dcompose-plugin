@@ -16,8 +16,6 @@
 package com.chrisgahlert.gradledcomposeplugin.tasks.container
 
 import com.chrisgahlert.gradledcomposeplugin.AbstractDcomposeSpec
-import org.gradle.internal.impldep.org.apache.maven.artifact.versioning.DefaultArtifactVersion
-import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 class DcomposeContainerStartTaskSpec extends AbstractDcomposeSpec {
@@ -921,9 +919,6 @@ class DcomposeContainerStartTaskSpec extends AbstractDcomposeSpec {
         result.standardOutput.contains('_app doesn\'t provide a health state - ignoring')
     }
 
-    @IgnoreIf({
-        new DefaultArtifactVersion(System.getenv('DOCKER_VERSION') ?: '999999') <= new DefaultArtifactVersion('1.12.0')
-    })
     def 'should pass waiting for healthcheck if specifying NONE over dockerfile'() {
         given:
         def dockerFile = file('docker/Dockerfile')
@@ -1003,9 +998,6 @@ class DcomposeContainerStartTaskSpec extends AbstractDcomposeSpec {
         result.standardOutput.contains('_app passed it\'s healthcheck')
     }
 
-    @IgnoreIf({
-        new DefaultArtifactVersion(System.getenv('DOCKER_VERSION') ?: '999999') <= new DefaultArtifactVersion('1.12.0')
-    })
     def 'should fail waiting for dcompose healthcheck if timeout exceeded'() {
         given:
         def dockerFile = file('docker/Dockerfile')
@@ -1037,9 +1029,6 @@ class DcomposeContainerStartTaskSpec extends AbstractDcomposeSpec {
         (result.standardOutput + result.standardError).contains('_app failed it\'s healthcheck')
     }
 
-    @IgnoreIf({
-        new DefaultArtifactVersion(System.getenv('DOCKER_VERSION') ?: '999999') <= new DefaultArtifactVersion('1.12.0')
-    })
     def 'should succeed waiting for dcompose healthcheck'() {
         given:
         def dockerFile = file('docker/Dockerfile')

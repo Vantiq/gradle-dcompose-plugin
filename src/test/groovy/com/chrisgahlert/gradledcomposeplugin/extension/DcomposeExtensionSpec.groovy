@@ -111,7 +111,7 @@ class DcomposeExtensionSpec extends AbstractDcomposeSpec {
         (result.standardOutput + result.standardError).contains('Please make sure they are on the same network')
     }
 
-    def 'should #successText when container name is #containerName and network name is #networkName'() {
+    def 'should #successText when #property'() {
         given:
         buildFile << """
             dcompose {

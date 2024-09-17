@@ -1,4 +1,4 @@
-group 'com.chrisgahlert'
+group 'com.vantiq'
 
 if(project.hasProperty('publishVersion') && publishVersion) {
     version = publishVersion
@@ -11,40 +11,41 @@ buildscript {
         }
     }
     dependencies {
-        classpath "com.gradle:gradle-enterprise-gradle-plugin:3.4.1"
-        classpath 'com.gradle.publish:plugin-publish-plugin:0.12.0'
-        classpath 'gradle.plugin.com.chrisgahlert:gradle-dcompose-plugin:0.17.0'
+        classpath 'com.gradle.publish:plugin-publish-plugin:1.3.0'
+        classpath 'gradle.plugin.com.chrisgahlert:gradle-dcompose-plugin:0.17.2'
     }
 }
 
-//apply plugin: 'com.gradle.enterprise' fixme
 apply plugin: 'com.gradle.plugin-publish'
 apply plugin: 'groovy'
 apply plugin: 'idea'
 apply plugin: 'eclipse'
 apply plugin: 'com.chrisgahlert.gradle-dcompose-plugin'
 
-//buildScan {
-//    termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-//    termsOfServiceAgree = 'yes'
-//
-//    publishAlways()
-//}
-
 repositories {
     mavenCentral()
+}
+
+wrapper {
+    gradleVersion = '8.0.1'
+    distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
 }
 
 sourceCompatibility = targetCompatibility = 1.8
 
 dependencies {
     implementation gradleApi()
-    testImplementation 'com.netflix.nebula:nebula-test:6.7.1'
+    testImplementation 'com.netflix.nebula:nebula-test:10.6.1'
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
+idea {
+    module {
+        downloadSources = true
+    }
+}
+
+java {
+    withSourcesJar()
 }
 
 artifacts {
@@ -75,9 +76,40 @@ dcompose {
 createDockerDaemonContainer.outputs.upToDateWhen { false }
 createDockerRegistryContainer.outputs.upToDateWhen { false }
 
+private Map getDockerConfig() {
+    def findHostProps = [:]
+    def dockerHostIp = project.findProperty('dockerHostIp')
+    if (dockerHostIp) {
+        findHostProps.hostIp = dockerHostIp
+    }
+    return [
+            dockerHost: dcompose.dockerDaemon.dockerHost, 
+            dockerPort: dcompose.dockerDaemon.findHostPort(findHostProps, 2375),
+            networkTestPort: dcompose.dockerDaemon.findHostPort(findHostProps, 1500)
+    ]
+}
+
+tasks.register('setupTest') {
+    doFirst {
+        def dockerConfig = getDockerConfig()
+        def dockerHost = dockerConfig.dockerHost
+        def dockerPort = dockerConfig.dockerPort
+        def networkTestPort = dockerConfig.networkTestPort
+        println "-DignoreDeprecations=true -DDOCKER_HOST=tcp://$dockerHost:$dockerPort -DDOCKER_TLS_VERIFY=0 " +
+                "-DnetworkCreateTaskSpec.testUrl=http://$dockerHost:$networkTestPort -Dtestreg.url=testreg:5000 " +
+                "-Dtestreg.user=reguser -Dtestreg.pass=regpass"
+    }
+    
+    dependsOn startDockerDaemonContainer, startDockerRegistryContainer, startDockerHubMirrorContainer
+}
+
+tasks.register('shutdownTest') {
+    finalizedBy removeDockerDaemonContainer, removeDockerRegistryContainer, removeDockerHubMirrorContainer
+}
+
 test {
     inputs.property 'docker-image', { dcompose.dockerDaemon.imageId }
-    maxParallelForks = Math.round(Runtime.runtime.availableProcessors() / 2)
+    maxParallelForks = (int) Math.round(Runtime.runtime.availableProcessors() / 2)
 
     systemProperty 'testreg.url', "testreg:5000"
     systemProperty 'testreg.user', 'reguser'
@@ -87,19 +119,21 @@ test {
         systemProperty 'gradleVersion', gradleVersion
     }
 
+    useJUnitPlatform {
+        includeEngines 'spock'
+    }
+    
     // ignore deprecation warnings found by nebula-test
     systemProperty 'ignoreDeprecations', 'true'
 
     maxHeapSize = '196m'
 
     doFirst {
-        def dockerHost = dcompose.dockerDaemon.dockerHost
-        def dockerPort = dcompose.dockerDaemon.findHostPort(2375)
-        def networkTestPort = dcompose.dockerDaemon.findHostPort(1500)
-
-        systemProperty 'DOCKER_HOST', "tcp://$dockerHost:$dockerPort"
+        def dockerConfig = getDockerConfig()
+        systemProperty 'DOCKER_HOST', "tcp://${dockerConfig.dockerHost}:${dockerConfig.dockerPort}"
         systemProperty 'DOCKER_TLS_VERIFY', '0'
-        systemProperty 'networkCreateTaskSpec.testUrl', "http://$dockerHost:$networkTestPort"
+        systemProperty 'networkCreateTaskSpec.testUrl', 
+                "http://${dockerConfig.dockerHost}:${dockerConfig.networkTestPort}"
     }
 
     doLast {
@@ -112,15 +146,21 @@ test {
     finalizedBy removeDockerDaemonContainer, removeDockerRegistryContainer, removeDockerHubMirrorContainer
 }
 
-pluginBundle {
-    website = vcsUrl = 'http://github.com/chrisgahlert/gradle-dcompose-plugin'
-    description = 'Plugin for automatically managing Docker container lifecycles in Gradle. This plugin was inspired by the gradle-docker-plugin from Benjamin Muschko and by docker-compose'
-    tags = ['docker', 'management', 'application', 'container', 'lifecycle', 'compose']
+gradlePlugin {
+    website = 'https://github.com/Vantiq/gradle-dcompose-plugin'
+    vcsUrl = 'https://github.com/Vantiq/gradle-dcompose-plugin'
+    description = 'Plugin for automatically managing Docker container lifecycles in Gradle. This plugin is a fork of https://github.com/chrisgahlert/gradle-dcompose-plugin'
 
     plugins {
         dcomposePlugin {
-            id = 'com.chrisgahlert.gradle-dcompose-plugin'
-            displayName = 'Gradle dcompose Plugin'
+            //noinspection GroovyAssignabilityCheck
+            id = 'com.vantiq.gradle-dcompose-plugin'
+            //noinspection GroovyAssignabilityCheck
+            displayName = 'Gradle dcompose Plugin (Vantiq Fork)'
+            description = 'Plugin for automatically managing Docker container lifecycles in Gradle. This plugin is a fork of https://github.com/chrisgahlert/gradle-dcompose-plugin'
+            //noinspection GroovyAssignabilityCheck
+            implementationClass = 'com.vantiq.gradledcomposeplugin.DcomposePlugin'
+            tags.set(['docker', 'management', 'application', 'container', 'lifecycle', 'compose'])
         }
     }
 }

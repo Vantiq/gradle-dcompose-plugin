@@ -15,7 +15,7 @@
  */
 package com.chrisgahlert.gradledcomposeplugin.tasks
 
-import com.chrisgahlert.gradledcomposeplugin.DcomposePlugin
+import com.vantiq.gradledcomposeplugin.DcomposePlugin
 import com.chrisgahlert.gradledcomposeplugin.extension.DcomposeExtension
 import com.chrisgahlert.gradledcomposeplugin.extension.DefaultService
 import com.chrisgahlert.gradledcomposeplugin.extension.Network
