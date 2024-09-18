@@ -22,6 +22,7 @@ import com.chrisgahlert.gradledcomposeplugin.extension.Service
 import com.chrisgahlert.gradledcomposeplugin.utils.DockerExecutor
 import com.chrisgahlert.gradledcomposeplugin.utils.ImageRef
 import groovy.json.JsonBuilder
+import groovy.json.JsonGenerator
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.gradle.api.DefaultTask
@@ -136,7 +137,9 @@ class AbstractDcomposeTask extends DefaultTask {
     }
 
     protected String toJson(Object input) {
-        new JsonBuilder(input).toPrettyString()
+        // Strip the "rawValues" property since it cannot be "diffed" effectively.
+        def generator = new JsonGenerator.Options().excludeFieldsByName("rawValues").build()
+        new JsonBuilder(input, generator).toPrettyString()
     }
 
     protected File dockerOutput(String name, Closure value) {

@@ -8,7 +8,7 @@ import org.gradle.util.ConfigureUtil
 
 @TypeChecked
 class DockerExecutor {
-    public static final String DOCKER_API_VERSION = '1.20'
+    public static final String DOCKER_API_VERSION = '1.40'
 
     private DockerClassLoaderFactory dockerClassLoaderFactory
 
