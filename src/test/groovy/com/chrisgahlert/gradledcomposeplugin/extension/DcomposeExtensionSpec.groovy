@@ -37,7 +37,7 @@ class DcomposeExtensionSpec extends AbstractDcomposeSpec {
         def result = runTasksWithFailure 'createMainContainer'
 
         then:
-        (result.standardOutput + result.standardError).contains 'Unsupported protocol scheme found: \'ftp://abc'
+        (result.standardOutput + result.standardError).contains 'Unsupported protocol scheme: ftp://abc'
     }
 
     def 'should be able to reference parent properties'() {

@@ -1,4 +1,4 @@
-FROM registry:2.7.1
+FROM registry:2.8.3
 
 COPY hub.* /certs/
 ENV REGISTRY_HTTP_TLS_CERTIFICATE /certs/hub.crt
